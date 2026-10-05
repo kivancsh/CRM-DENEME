@@ -475,6 +475,9 @@ export const invoices: InvoiceRow[] = [
   { id: "i3", number: "INV-2039", business: "Cedarworks Hardware", amount: 1512.0, status: "paid", due: "2026-06-26" },
   { id: "i4", number: "INV-2038", business: "Lumen Skincare", amount: 7344.0, status: "overdue", due: "2026-06-10" },
   { id: "i5", number: "INV-2037", business: "Meridian Outfitters", amount: 5060.0, status: "paid", due: "2026-06-24" },
+  { id: "i6", number: "INV-2036", business: "Harvest Provisions", amount: 2160.0, status: "pending", due: "2026-07-10" },
+  { id: "i7", number: "INV-2035", business: "Parable Cafés", amount: 3980.0, status: "overdue", due: "2026-06-05" },
+  { id: "i8", number: "INV-2034", business: "Northwind Grocers", amount: 4132.0, status: "paid", due: "2026-06-02" },
 ];
 
 /* ── Landing interactive demo: a buyer's cart at wholesale prices ─────────────── */
@@ -525,3 +528,44 @@ export function demoPriceForQty(item: DemoCatalogItem, qty: number): number {
   for (const b of item.breaks) if (qty >= b.min) price = b.price;
   return price;
 }
+
+/* ── Inventory sync (ERP) ─────────────────────────────────────────────────────── */
+export interface SyncEvent {
+  id: string;
+  at: string;
+  kind: "products" | "stock" | "orders";
+  detail: L;
+  status: "ok" | "warning";
+}
+
+export const syncMeta = {
+  source: "Cin7 Core (demo)",
+  lastSync: "2026-06-13T09:30:00Z",
+  frequency: { tr: "15 dakikada bir", en: "every 15 minutes" } as L,
+  lowStockThreshold: 800,
+};
+
+export const syncLog: SyncEvent[] = [
+  { id: "s1", at: "2026-06-13T09:30:00Z", kind: "stock", detail: { tr: "8 SKU için stok seviyesi güncellendi", en: "Stock levels updated for 8 SKUs" }, status: "ok" },
+  { id: "s2", at: "2026-06-13T09:12:30Z", kind: "orders", detail: { tr: "WO-4821 ERP'ye aktarıldı", en: "WO-4821 pushed to ERP" }, status: "ok" },
+  { id: "s3", at: "2026-06-13T09:00:00Z", kind: "stock", detail: { tr: "SRM-30 düşük stok eşiğinin altında", en: "SRM-30 below low-stock threshold" }, status: "warning" },
+  { id: "s4", at: "2026-06-13T06:00:00Z", kind: "products", detail: { tr: "Katalog eşitlendi · 0 yeni, 2 güncellenen ürün", en: "Catalog synced · 0 new, 2 updated products" }, status: "ok" },
+  { id: "s5", at: "2026-06-12T16:41:00Z", kind: "orders", detail: { tr: "WO-4820 kargo bilgisi ERP'den alındı", en: "WO-4820 shipping info pulled from ERP" }, status: "ok" },
+];
+
+/* ── Reports ──────────────────────────────────────────────────────────────────── */
+export const ordersByWeekday: { label: L; value: number }[] = [
+  { label: { tr: "Pzt", en: "Mon" }, value: 58 },
+  { label: { tr: "Sal", en: "Tue" }, value: 64 },
+  { label: { tr: "Çar", en: "Wed" }, value: 52 },
+  { label: { tr: "Per", en: "Thu" }, value: 61 },
+  { label: { tr: "Cum", en: "Fri" }, value: 49 },
+  { label: { tr: "Cmt", en: "Sat" }, value: 21 },
+  { label: { tr: "Paz", en: "Sun" }, value: 13 },
+];
+
+export const INVOICE_STATUS_META: Record<InvoiceRow["status"], { tr: string; en: string; tone: string }> = {
+  paid: { tr: "ödendi", en: "paid", tone: "text-success bg-success/10" },
+  pending: { tr: "bekliyor", en: "pending", tone: "text-warning-foreground bg-warning/15" },
+  overdue: { tr: "gecikmiş", en: "overdue", tone: "text-destructive bg-destructive/10" },
+};
